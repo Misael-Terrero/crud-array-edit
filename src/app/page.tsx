@@ -1,94 +1,85 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+"use client"
+
+
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { db } from "@/db/config";
+import { collection, getDocs } from "firebase/firestore";
+import EsquemaList from "@/components/EsquemaList";
+
+
+interface Registro {
+  id: string;
+  name: string;
+  last_name: string;
+  edad: number;
+}
+
+interface vacuna {
+  vacuna: string;
+  dosis: string;
+  fecha: string;
+}
+
+interface dtcomb {
+  data: Registro;
+  arrayA: vacuna;
+}
 
 export default function Home() {
+  const [infoPer, setInfoPer] = useState<dtcomb[]>()
+  const [esquema, setEsquema] = useState<vacuna[]>()
+
+  useEffect(() => {
+    const infos = collection(db, "registro")
+
+    getDocs(infos)
+      .then((res) => {
+        setInfoPer(
+          res.docs.map((doc) => {
+            return {
+              data: { ...doc.data().data, id: doc.id },
+              arrayA: { ...doc.data().arrayA}
+            }
+          })
+        );
+        setEsquema(res.docs[0].data().arrayA)
+      })
+  }, [])
+  
+   console.log(infoPer)
+  // console.log(esquema)
+
   return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.tsx</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
+    <main>
+      <h1>Editar un array</h1>
+      <br /><br />
 
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
+      <nav>
+        <li>
+          <Link href='/'>Home</Link>
+        </li>
 
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
+        <li>
+          <Link href='/registro'>Registro</Link>
+        </li>
+      </nav>
+      <br /><br /><br />
 
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
+      <div>
+        <h2>Contenedor</h2>
+        <br />
+        {
+          infoPer && infoPer.map((dato) => {
+            return <div key={dato.data.id}>
+              <h3>{dato.data.name} {dato.data.last_name}</h3>
+              <p>Edad: {dato.data.edad}</p>
 
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore starter templates for Next.js.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
+              <EsquemaList esquemas={esquema}/>
+              <br /><br />
+            </div>
+          })
+        }
       </div>
     </main>
   );
